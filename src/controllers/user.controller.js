@@ -167,18 +167,22 @@ const loginUser = asyncHandler( async (request,response)=>{
 
 
 const logoutUser = asyncHandler( async (req,res) => {
-    // to logout delete the accessToken (done by clearing the cookies) & refreshToken (delete the token from db for this user) of the current user
+    // to logout delete the accessToken (done by clearing the cookies) & 
+    // refreshToken (delete the token from db for this user & also clear the cookies) of the current user
     
-    await User.findByIdAndUpdate(
-        // now req object has a field called user
-        req.user._id,
-        {
-            $set: {refreshToken: undefined}
-        },
-        {
-            new:true
-        }
-    )
+    // complete refresh tokens too.
+    // await User.findByIdAndUpdate(
+    //     // now req object has a field called user
+    //     req.user._id,
+    //     {
+    //         // this is a mongoDB operator that lets create & update already existing/new
+    //         // fields 
+    //         $set: {refreshToken: undefined}
+    //     },
+    //     {
+    //         new:true // this tells mongoDB what object to return the new updated one or the old one
+    //     }
+    // )
 
     const options = {
         httpOnly : true,
