@@ -51,7 +51,9 @@ express.static("public")
            Next middleware/route
 */
 
-app.use(cookieParser()) // enables the server to access and perform CRED op. on user's cookies
+app.use(cookieParser()) 
+// enables the server to access and perform CRED op. on user's cookies
+// req.cookies() can be used after using ts
 
 // ROUTES
 import UserRouter from './routes/user.routes.js'
