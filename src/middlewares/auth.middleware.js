@@ -1,4 +1,6 @@
-// This middleware is designed to verify JWT, will be used whenever we want to authenticate the user anywhere in the workflow
+// This middleware is designed to verify JWT, will be used whenever we want to authenticate the user anywhere in the workflow,
+// substitues the need for another middleware that checks if user is logged in or not
+// hence can be used for checking if a user if logged in or not.
 
 import { apiError } from "../utils/apiError.js"
 import { asyncHandler } from "../utils/asyncHandler.js"

@@ -100,8 +100,6 @@ const registerUser = asyncHandler( async (request,response) => {
 
 })
 
-
-
 const loginUser = asyncHandler( async (request,response)=>{
     // get data entered using request.
     // username or email base entry
@@ -164,8 +162,6 @@ const loginUser = asyncHandler( async (request,response)=>{
 
 })
 
-
-
 const logoutUser = asyncHandler( async (req,res) => {
     // to logout delete the accessToken (done by clearing the cookies) & 
     // refreshToken (delete the token from db for this user & also clear the cookies) of the current user
@@ -198,5 +194,81 @@ const logoutUser = asyncHandler( async (req,res) => {
     )
 })
 
+const changeCurrentPassword = asyncHandler( async (req,res) => {
 
-export {registerUser, loginUser, logoutUser}
+    const {oldPassword, newPassword, confirmPassword} = req.body;
+
+    if(newPassword != confirmPassword){
+        throw new apiError(401, "New password & confirm password should be same !!")
+    }
+
+    // since we put the jwtVerify middleware in the route of /changepassword
+    // hence the object of req contains the user field i.e. current user's all info
+    // hence we can change the password from here
+
+    const user = await User.findById(req.user?._id)
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+    if(!isPasswordCorrect){
+        throw new apiError(400,"Invalid Password")
+    }
+
+    user.password = newPassword
+    await user.save({validateBeforeSave:false})
+
+    return res
+    .status(200)
+    .json(
+        new apiResponse(200,{},"Password changed successfully !!")
+    )
+})
+
+const getCurrentUser = asyncHandler( async (req,res) => {
+    // route for this must have mauth middleware so that req.user exists
+    return res
+    .status(200)
+    .json(new apiResponse(200, req.user, "Current User fetched"))
+})
+
+const updateAccountDetails = asyncHandler( async (req,res) => {
+    // for files/photo updation make seprate controllers coz
+    // its better since we dont want the whole text data of user being saved
+    // again & again.
+
+    const {username, fullName, email} = req.body
+
+    if(!username || !fullName || !email){
+        throw new apiError(400 , "All fields are required !!")
+    }
+
+    const user = User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                username, 
+                fullName: fullName, 
+                email
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password")
+
+    // So there are 2 ways to update some data in mongoDB
+    // By directly assigning the value to the mongoose document and using save() like in PasswordChange
+    // or By using findByIdAndUpdate() & $set , disadvantage is that it wont run pre("save") hence for passwrod we didnt use this method otherwise we wouldnt bcrypt the new password.
+
+    return res
+    .status(200)
+    .json(new apiResponse(200,user,"Account details updated successfully !!"))
+})
+
+export {
+    registerUser,
+    loginUser,
+    logoutUser,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails
+}
