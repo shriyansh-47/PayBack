@@ -3,6 +3,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { apiError } from '../utils/apiError.js'
 import { User } from '../models/user.models.js'
 import { apiResponse } from '../utils/apiResponse.js'
+import { uploadOnCloudinary } from '../utils/cloudinary.js'
 
 const generateAccessAndRefreshToken = async (userId)=>{
     try{
@@ -202,11 +203,64 @@ const updateAccountDetails = asyncHandler( async (req,res) => {
     .json(new apiResponse(200,user,"Account details updated successfully !!"))
 })
 
+const searchUsers = asyncHandler(async (req, res) => {
+    const { query } = req.query;
+
+    if (!query) {
+        return res.status(200).json(new apiResponse(200, [], "Empty query"));
+    }
+
+    const users = await User.find({
+        username: { $regex: query, $options: 'i' }
+    }).select("-password");
+
+    return res.status(200).json(new apiResponse(200, users, "Users found"));
+});
+
+const updateUserImages = asyncHandler(async (req, res) => {
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+
+    if (!avatarLocalPath && !coverImageLocalPath) {
+        throw new apiError(400, "Please upload at least one image (avatar or coverImage)");
+    }
+
+    let avatar, coverImage;
+
+    if (avatarLocalPath) {
+        avatar = await uploadOnCloudinary(avatarLocalPath);
+        if (!avatar) {
+            throw new apiError(500, "Error uploading avatar");
+        }
+    }
+
+    if (coverImageLocalPath) {
+        coverImage = await uploadOnCloudinary(coverImageLocalPath);
+        if (!coverImage) {
+            throw new apiError(500, "Error uploading cover image");
+        }
+    }
+
+    const updateFields = {};
+    if (avatar) updateFields.avatar = avatar.url;
+    if (coverImage) updateFields.coverImage = coverImage.url;
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        { $set: updateFields },
+        { new: true }
+    ).select("-password");
+
+    return res.status(200).json(new apiResponse(200, user, "Images updated successfully"));
+});
+
 export {
     registerUser,
     loginUser,
     logoutUser,
     changeCurrentPassword,
     getCurrentUser,
-    updateAccountDetails
+    updateAccountDetails,
+    searchUsers,
+    updateUserImages
 }

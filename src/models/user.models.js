@@ -33,7 +33,17 @@ const userSchema = new mongoose.Schema(
                 type:mongoose.Schema.Types.ObjectId,
                 ref:'User'
             }
-        ]
+        ],
+        defaultCurrency: {
+            type: String,
+            default: 'INR'
+        },
+        avatar: {
+            type: String
+        },
+        coverImage: {
+            type: String
+        }
     },
     {timestamps:true}
 )

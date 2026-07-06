@@ -1,8 +1,6 @@
 // ESModule method:-
-import dotenv from 'dotenv'
-dotenv.config({
-    path:'./.env' // path of .env file
-})
+import 'dotenv/config'
+
 
 import mongoose from 'mongoose'
 import { DB_NAME } from './constants.js'

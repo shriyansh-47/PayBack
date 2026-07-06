@@ -25,8 +25,12 @@ app.use(cookieParser())
 
 // ROUTES
 import UserRouter from './routes/user.routes.js'
+import GroupRouter from './routes/group.routes.js'
+import ExpenseRouter from './routes/expense.routes.js'
 
 //Routes declaration
 app.use('/api/v1/user', UserRouter)
+app.use('/api/v1/group', GroupRouter)
+app.use('/api/v1/expense', ExpenseRouter)
 
 export { app } // named-export
