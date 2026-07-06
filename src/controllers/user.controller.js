@@ -4,25 +4,10 @@ import { apiError } from '../utils/apiError.js'
 import { User } from '../models/user.models.js'
 import { apiResponse } from '../utils/apiResponse.js'
 
-// For testing :-
-// const registerUser = asyncHandler( async (request,response) => {
-//     // this method can be used to send status-code along with response
-//     response.status(200).json({
-//         message:"ok"
-//     })
-// })
-
 const generateAccessAndRefreshToken = async (userId)=>{
     try{
         const user = await User.findById(userId)
         const accessToken = user.generateAccessToken()
-        // const refreshToken = user.generateRefreshToken()
-        
-        // user.refreshToken = refreshToken
-        // await user.save({validateBeforeSave:false})
-        // validateBeforeSave tells Mongoose 
-        // whether it should run schema validations before saving the document.
-
         return accessToken
     }
     catch(error){
@@ -36,7 +21,6 @@ const registerUser = asyncHandler( async (request,response) => {
     // pre-existence of the user
     // avatar if u want, then upload to cloudinary
     // create user object & create entry in DB
-    // NOTE -> Whenever we create entry in mongoDB, we get the info inserted as it is back from the db as a response
     // remove password & refresh-token fields from the response
     // check for user-creation if yes then return the response.
 
@@ -45,8 +29,7 @@ const registerUser = asyncHandler( async (request,response) => {
     // checking non-emptiness of all data
     if(
         [fullName,username,email,password].some((element)=>{
-            return element?.trim() == "" // k/a optional chaining
-            // this means if element is not null/undefined then only use .trim() on it
+            return element?.trim() == ""
         })
     ){
         throw new apiError(400,'All fields are required !!')
@@ -59,12 +42,8 @@ const registerUser = asyncHandler( async (request,response) => {
     }
 
     // checking pre-existence of user
-    // findOne gives the 1st matching document it gets in DB
     const doesExist = await User.findOne({
         $or: [{username},{email}] 
-        // $or is a MongoDB query operator.
-        // Each object represents one matching condition.
-        // If a document matches either condition, findOne() returns it; otherwise it returns null.
     })
     if(doesExist){
         throw new apiError(409, 'This user already exists.')
@@ -75,20 +54,14 @@ const registerUser = asyncHandler( async (request,response) => {
     const user = await User.create({
         fullName: fullName.toUpperCase(),
         username: username.toLowerCase(),
-        email, // this is using the property of JS object known as shorthand
-        // since the document's field name and the variable names are same so no need to
-        // write like email:email, it automatically detects this.
+        email,
         password
     })
 
     // removing password + checking if user was created
     const userCreated = await User.findById(user._id).select(
-        "-password" // fields with -ve signs & separated by space are not selected 
-        // rest by default all are selected
+        "-password"
     )
-    // we never send passwords & token info to the front-end
-
-    // checking if user was created
     if(!userCreated){
         throw new apiError(500, "Something went wrong when registering new user.")
     }
@@ -115,7 +88,6 @@ const loginUser = asyncHandler( async (request,response)=>{
     }
 
     // Checking existence of USER :-
-    // Always use await when quering the DB (DB on another continent)
     const user = await User.findOne({
         $or: [{username},{email}]
     })
@@ -124,18 +96,12 @@ const loginUser = asyncHandler( async (request,response)=>{
         throw new apiError(404,"User doesnt exist !!")
     }
 
-    // here User wont be used since its a mongoose instance
-    // we'll have to check using our current user-object (i.e. "user")
     const isPasswordValid = await user.isPasswordCorrect(password)
     if(!isPasswordValid){
         throw new apiError(401,"Password Incorrect !!")
     }
 
     const accessToken = await generateAccessAndRefreshToken(user._id)
-
-    // Note -> the mongoose document of user isnt updated with the
-    // refreshToken field till now coz we did that with another object in the function & not the current one
-    // do we gotta update it
 
     // making another DB call may be time consuming, see better methods too
     const ogUser = await User.findById(user._id).select(
@@ -154,7 +120,7 @@ const loginUser = asyncHandler( async (request,response)=>{
         new apiResponse(
             201,
             {
-                user: ogUser, accessToken // shorthad usage
+                user: ogUser, accessToken
             },
             "Login Successful !!"
         )
@@ -165,21 +131,6 @@ const loginUser = asyncHandler( async (request,response)=>{
 const logoutUser = asyncHandler( async (req,res) => {
     // to logout delete the accessToken (done by clearing the cookies) & 
     // refreshToken (delete the token from db for this user & also clear the cookies) of the current user
-    
-    // complete refresh tokens too.
-    // await User.findByIdAndUpdate(
-    //     // now req object has a field called user
-    //     req.user._id,
-    //     {
-    //         // this is a mongoDB operator that lets create & update already existing/new
-    //         // fields 
-    //         $set: {refreshToken: undefined}
-    //     },
-    //     {
-    //         new:true // this tells mongoDB what object to return the new updated one or the old one
-    //     }
-    // )
-
     const options = {
         httpOnly : true,
         secure : true
@@ -188,7 +139,6 @@ const logoutUser = asyncHandler( async (req,res) => {
     return res.
     status(200)
     .clearCookie("accessToken",options)
-    // .clearCookie(refreshToken,options)
     .json(
         new apiResponse(200,{},"User Logged Out Successfully !!") 
     )
@@ -201,10 +151,6 @@ const changeCurrentPassword = asyncHandler( async (req,res) => {
     if(newPassword != confirmPassword){
         throw new apiError(401, "New password & confirm password should be same !!")
     }
-
-    // since we put the jwtVerify middleware in the route of /changepassword
-    // hence the object of req contains the user field i.e. current user's all info
-    // hence we can change the password from here
 
     const user = await User.findById(req.user?._id)
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
@@ -224,16 +170,12 @@ const changeCurrentPassword = asyncHandler( async (req,res) => {
 })
 
 const getCurrentUser = asyncHandler( async (req,res) => {
-    // route for this must have mauth middleware so that req.user exists
     return res
     .status(200)
     .json(new apiResponse(200, req.user, "Current User fetched"))
 })
 
 const updateAccountDetails = asyncHandler( async (req,res) => {
-    // for files/photo updation make seprate controllers coz
-    // its better since we dont want the whole text data of user being saved
-    // again & again.
 
     const {username, fullName, email} = req.body
 
@@ -254,10 +196,6 @@ const updateAccountDetails = asyncHandler( async (req,res) => {
             new: true
         }
     ).select("-password")
-
-    // So there are 2 ways to update some data in mongoDB
-    // By directly assigning the value to the mongoose document and using save() like in PasswordChange
-    // or By using findByIdAndUpdate() & $set , disadvantage is that it wont run pre("save") hence for passwrod we didnt use this method otherwise we wouldnt bcrypt the new password.
 
     return res
     .status(200)
