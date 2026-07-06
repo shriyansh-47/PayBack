@@ -38,17 +38,11 @@ const userSchema = new mongoose.Schema(
     {timestamps:true}
 )
 
-// This is a pre-hook (a middleware in disguise) i.e. it runs automatically just before a 
-// specific operation is performed on MongoDB like here 'save' operation.
-
 // this -> refers to the current User's context.
 userSchema.pre("save" , 
-    // cannot use arrow-function since we need to use .this 
-    async function(next){ // async coz encryption might take time
-        // this prevents re-hashing of password everytime any changes to the user are made
+    async function(next){ 
         if(!this.isModified("password")) return next()
         this.password = await bcrypt.hash(this.password,10)
-        // next() -> modern mongoose doesnt support this, it works without next() too fro async funct.
     }
 )
 
@@ -56,8 +50,6 @@ userSchema.pre("save" ,
 userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password,this.password)
 }
-// this method cna be used in login.controller to validate the login password
-
 
 userSchema.methods.generateAccessToken = function(){
     return jwt.sign(
@@ -77,7 +69,5 @@ userSchema.methods.generateAccessToken = function(){
         }
     )
 }
-
-// Implement Refresh-Tokens in future too.
 
 export const User = mongoose.model('User',userSchema)
