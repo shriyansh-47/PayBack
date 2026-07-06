@@ -1,6 +1,7 @@
 import { Link, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, ReceiptText } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import { AddExpenseModal } from './AddExpenseModal';
 
 export default function Layout() {
   return (
@@ -17,6 +18,10 @@ export default function Layout() {
             <LayoutDashboard className="h-5 w-5" />
             <span className="hidden lg:inline-block">Dashboard</span>
           </Link>
+          <Link to="/expenses" className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted text-foreground font-medium text-sm">
+            <ReceiptText className="h-5 w-5" />
+            <span className="hidden lg:inline-block">All Expenses</span>
+          </Link>
           <Link to="/groups" className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted text-foreground font-medium text-sm">
             <Users className="h-5 w-5" />
             <span className="hidden lg:inline-block">Groups</span>
@@ -26,6 +31,10 @@ export default function Layout() {
             <span className="hidden lg:inline-block">Settings</span>
           </Link>
         </nav>
+        
+        <div className="hidden lg:flex mt-auto pt-6 border-t border-border w-full justify-center">
+          <AddExpenseModal />
+        </div>
       </aside>
 
       {/* Main Content */}

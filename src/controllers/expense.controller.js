@@ -75,6 +75,11 @@ const deleteExpense = asyncHandler(async (req, res) => {
     if (!expense) throw new apiError(404, "Expense not found");
     if (expense.isDeleted) throw new apiError(400, "Expense is already deleted");
 
+    // Authorization: Only the user who paid can delete the expense
+    if (expense.paidBy.toString() !== req.user._id.toString()) {
+        throw new apiError(403, "Only the creator can delete this expense");
+    }
+
     // Reverse balances atomically
     for (const split of expense.splits) {
         if (split.user.toString() !== expense.paidBy.toString()) {
@@ -116,8 +121,20 @@ const settleUp = asyncHandler(async (req, res) => {
     return res.status(200).json(new apiResponse(200, expense, "Settled up successfully"));
 });
 
+const getUserExpenses = asyncHandler(async (req, res) => {
+    const expenses = await Expense.find({
+        $or: [
+            { paidBy: req.user._id },
+            { 'splits.user': req.user._id }
+        ]
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json(new apiResponse(200, expenses, "User expenses fetched successfully"));
+});
+
 export {
     createExpense,
     deleteExpense,
-    settleUp
+    settleUp,
+    getUserExpenses
 };

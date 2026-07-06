@@ -20,6 +20,10 @@ const expenseSchema = new mongoose.Schema(
             enum: ['Food', 'Transportation', 'Housing', 'Utilities', 'Entertainment', 'Others'],
             default: 'Others'
         },
+        date: {
+            type: Date,
+            default: Date.now
+        },
         paidBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',

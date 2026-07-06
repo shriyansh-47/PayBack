@@ -22,6 +22,7 @@ export const expenseService = {
   createExpense: (data) => api.post('/expense', data),
   deleteExpense: (expenseId) => api.delete(`/expense/${expenseId}`),
   settleUp: (data) => api.post('/expense/settle', data),
+  getUserExpenses: () => api.get('/expense'),
 };
 
 export const notificationService = {

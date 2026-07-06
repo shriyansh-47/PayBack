@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { groupService, expenseService } from '../api/services';
+import { AddExpenseModal } from '../components/AddExpenseModal';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
@@ -95,75 +96,7 @@ export default function GroupView() {
   );
 }
 
-function AddExpenseModal({ groupId, onAdded }) {
-  const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState('');
-  const [desc, setDesc] = useState('');
-  const [category, setCategory] = useState('OTHER');
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await expenseService.createExpense({
-        groupId,
-        totalAmount: Number(amount),
-        description: desc,
-        category,
-        currency: 'USD',
-        splitStrategy: 'EQUAL'
-      });
-      toast({ title: "Expense Added" });
-      setOpen(false);
-      onAdded();
-    } catch (err) {
-      toast({ variant: "destructive", title: "Failed to add expense" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Add Expense</Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add a new expense</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>Description</Label>
-            <Input value={desc} onChange={e => setDesc(e.target.value)} required />
-          </div>
-          <div className="space-y-2">
-            <Label>Amount</Label>
-            <Input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} required />
-          </div>
-          <div className="space-y-2">
-            <Label>Category</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="FOOD">Food</SelectItem>
-                <SelectItem value="TRAVEL">Travel</SelectItem>
-                <SelectItem value="UTILITIES">Utilities</SelectItem>
-                <SelectItem value="ENTERTAINMENT">Entertainment</SelectItem>
-                <SelectItem value="OTHER">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>Save Expense</Button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function SettleUpModal({ groupId, onSettled }) {
   const [open, setOpen] = useState(false);

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { groupService } from '../api/services';
+import { groupService, authService } from '../api/services';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Link } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useToast } from '../hooks/use-toast';
+import { Search, UserPlus, X } from 'lucide-react';
 
 export default function GroupsList() {
   const [groups, setGroups] = useState([]);
@@ -70,14 +71,55 @@ function CreateGroupModal({ onCreated }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedFriends, setSelectedFriends] = useState([]);
+  
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!open) {
+      setName(''); setDescription(''); setSearchQuery('');
+      setSearchResults([]); setSelectedFriends([]);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (searchQuery.length > 2) {
+      const timer = setTimeout(() => {
+        authService.searchUsers(searchQuery)
+          .then(res => setSearchResults(res.data.data))
+          .catch(console.error);
+      }, 300);
+      return () => clearTimeout(timer);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchQuery]);
+
+  const addFriend = (user) => {
+    if (!selectedFriends.find(f => f._id === user._id)) {
+      setSelectedFriends([...selectedFriends, user]);
+    }
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
+  const removeFriend = (userId) => {
+    setSelectedFriends(selectedFriends.filter(f => f._id !== userId));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await groupService.createGroup({ name, description });
+      await groupService.createGroup({ 
+        name, 
+        description,
+        members: selectedFriends.map(f => f._id)
+      });
       toast({ title: "Group Created" });
       setOpen(false);
       onCreated();
@@ -106,6 +148,49 @@ function CreateGroupModal({ onCreated }) {
             <Label>Description</Label>
             <Input value={description} onChange={e => setDescription(e.target.value)} />
           </div>
+
+          <div className="space-y-2">
+            <Label>Add Members</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search users..." 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)} 
+                className="pl-9"
+              />
+              {searchResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-popover border rounded-md shadow-md max-h-40 overflow-y-auto">
+                  {searchResults.map(u => (
+                    <div 
+                      key={u._id} 
+                      className="p-2 hover:bg-muted cursor-pointer flex items-center justify-between"
+                      onClick={() => addFriend(u)}
+                    >
+                      <span>{u.fullName || u.username}</span>
+                      <UserPlus className="h-4 w-4 text-emerald-600" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Display Selected Friends */}
+            {selectedFriends.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {selectedFriends.map(f => (
+                  <div key={f._id} className="flex items-center bg-muted px-2 py-1 rounded-md text-sm">
+                    {f.fullName || f.username}
+                    <X 
+                      className="ml-2 h-3 w-3 cursor-pointer hover:text-destructive" 
+                      onClick={() => removeFriend(f._id)} 
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
           <Button type="submit" className="w-full" disabled={loading}>Create</Button>
         </form>
       </DialogContent>

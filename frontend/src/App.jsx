@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import GroupView from './pages/GroupView';
 import GroupsList from './pages/GroupsList';
 import Settings from './pages/Settings';
+import Expenses from './pages/Expenses';
 import Layout from './components/Layout';
 import { Toaster } from './components/ui/toaster';
 
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/groups" element={<GroupsList />} />
           <Route path="/group/:groupId" element={<GroupView />} />
+          <Route path="/expenses" element={<Expenses />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
