@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, Settings, ReceiptText, LogOut } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import ThemeToggle from './ThemeToggle';
 import { AddExpenseModal } from './AddExpenseModal';
 import { authService } from '../api/services';
 import { useToast } from '../hooks/use-toast';
@@ -65,6 +66,7 @@ export default function Layout() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         <header className="h-14 border-b border-border bg-card flex items-center justify-end gap-3 px-6">
+          <ThemeToggle />
           <NotificationBell />
           
           <Link to="/settings" title="Settings" className="flex-shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
