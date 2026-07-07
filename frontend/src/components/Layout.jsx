@@ -15,8 +15,11 @@ export default function Layout() {
   useEffect(() => {
     authService.getCurrentUser()
       .then(res => setUser(res.data.data))
-      .catch(console.error);
-  }, []);
+      .catch(err => {
+        console.error("Auth check failed:", err);
+        navigate('/login');
+      });
+  }, [navigate]);
 
   const handleLogout = async () => {
     try {
