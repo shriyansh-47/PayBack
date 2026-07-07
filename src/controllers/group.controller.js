@@ -50,6 +50,8 @@ const getGroupActivity = asyncHandler(async (req, res) => {
     const expenses = await Expense.find({ groupId, isDeleted: false })
         .populate('paidBy', 'fullName username avatar')
         .populate('splits.user', 'fullName username avatar')
+        .populate('settlements.paidBy', 'fullName username avatar')
+        .populate('settlements.paidTo', 'fullName username avatar')
         .sort({ createdAt: -1 });
 
     return res.status(200).json(new apiResponse(200, expenses, "Group activity fetched"));
@@ -119,11 +121,41 @@ const deleteGroup = asyncHandler(async (req, res) => {
     return res.status(200).json(new apiResponse(200, {}, "Group deleted successfully"));
 });
 
+const addMembersToGroup = asyncHandler(async (req, res) => {
+    const { groupId } = req.params;
+    const { members } = req.body;
+
+    if (!members || !Array.isArray(members) || members.length === 0) {
+        throw new apiError(400, "Please provide an array of member IDs to add");
+    }
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+        throw new apiError(404, "Group not found");
+    }
+
+    // Only the creator can add members? No, usually any member can add members.
+    // Wait, let's allow any existing member to add new members
+    if (!group.members.includes(req.user._id)) {
+        throw new apiError(403, "You must be a member of this group to add others");
+    }
+
+    // Add unique members
+    const newMembers = members.filter(id => !group.members.includes(id));
+    if (newMembers.length > 0) {
+        group.members.push(...newMembers);
+        await group.save();
+    }
+
+    return res.status(200).json(new apiResponse(200, group, "Members added successfully"));
+});
+
 export {
     createGroup,
     getGroupDashboard,
     getGroupActivity,
     simplifyGroupDebts,
     getUserGroups,
-    deleteGroup
+    deleteGroup,
+    addMembersToGroup
 };

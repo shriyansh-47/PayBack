@@ -201,25 +201,20 @@ const getCurrentUser = asyncHandler( async (req,res) => {
 })
 
 const updateAccountDetails = asyncHandler( async (req,res) => {
+    const { fullName, defaultCurrency } = req.body;
 
-    const {username, fullName, email} = req.body
+    const updateFields = {};
+    if (fullName) updateFields.fullName = fullName;
+    if (defaultCurrency) updateFields.defaultCurrency = defaultCurrency;
 
-    if(!username || !fullName || !email){
-        throw new apiError(400 , "All fields are required !!")
+    if (Object.keys(updateFields).length === 0) {
+        throw new apiError(400, "No fields provided to update");
     }
 
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user?._id,
-        {
-            $set: {
-                username, 
-                fullName: fullName, 
-                email
-            }
-        },
-        {
-            new: true
-        }
+        { $set: updateFields },
+        { new: true }
     ).select("-password")
 
     return res

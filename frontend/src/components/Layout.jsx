@@ -55,10 +55,6 @@ export default function Layout() {
             <Users className="h-5 w-5" />
             <span className="hidden lg:inline-block">Groups</span>
           </Link>
-          <Link to="/settings" className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted text-foreground font-medium text-sm">
-            <Settings className="h-5 w-5" />
-            <span className="hidden lg:inline-block">Settings</span>
-          </Link>
         </nav>
         
         <div className="hidden lg:flex mt-auto pt-6 border-t border-border w-full justify-center">
@@ -68,8 +64,22 @@ export default function Layout() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        <header className="h-14 border-b border-border bg-card flex items-center justify-end gap-2 px-6">
+        <header className="h-14 border-b border-border bg-card flex items-center justify-end gap-3 px-6">
           <NotificationBell />
+          
+          <Link to="/settings" title="Settings" className="flex-shrink-0 rounded-full focus:outline-none focus:ring-2 focus:ring-primary">
+            {user?.avatar ? (
+              <img 
+                src={user.avatar} 
+                alt="Settings" 
+                className="h-8 w-8 rounded-full object-cover shadow-sm hover:ring-2 hover:ring-primary transition-all" 
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-sm font-bold shadow-sm hover:ring-2 hover:ring-primary transition-all">
+                {user?.username?.[0]?.toUpperCase() || user?.fullName?.[0]?.toUpperCase() || 'U'}
+              </div>
+            )}
+          </Link>
           <Button
             variant="ghost"
             size="icon"

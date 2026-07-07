@@ -245,9 +245,16 @@ function ExpenseCard({ expense, currentUser, onSettle, onDelete, onClear }) {
                   const isPayer = uid?.toString() === paidById?.toString();
 
                   return (
-                    <li key={i} className="flex items-center justify-between gap-2">
+                    <li key={i} className="flex items-center justify-between gap-2 py-1">
                       <div className="flex items-center gap-2">
                         <StatusDot settled={memberSettled || isPayer} />
+                        {split.user?.avatar ? (
+                          <img src={split.user.avatar} alt="avatar" className="h-6 w-6 rounded-full object-cover" />
+                        ) : (
+                          <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                            {isMe ? 'YOU' : (name?.substring(0, 2).toUpperCase() || 'U')}
+                          </div>
+                        )}
                         <span className={`font-medium ${isMe ? 'text-emerald-600' : ''}`}>
                           {isMe ? 'You' : name}
                           {isPayer && <span className="ml-1 text-xs text-muted-foreground">(paid)</span>}
@@ -274,22 +281,38 @@ function ExpenseCard({ expense, currentUser, onSettle, onDelete, onClear }) {
                     const receiverName = s.paidTo?.username || s.paidTo?.fullName || 'Someone';
                     const isMyPayment = (s.paidBy?._id || s.paidBy)?.toString() === myId?.toString();
                     return (
-                      <li key={i} className="flex items-start justify-between gap-2 py-1 border-b last:border-0">
-                        <span className="text-muted-foreground leading-snug">
-                          <span className={`font-medium ${isMyPayment ? 'text-emerald-600' : 'text-foreground'}`}>
-                            {isMyPayment ? 'You' : payerName}
+                      <li key={i} className="flex items-start gap-3 py-2 border-b last:border-0">
+                        <div className="flex-shrink-0 mt-0.5 flex -space-x-2">
+                          {s.paidBy?.avatar ? (
+                            <img src={s.paidBy.avatar} alt="payer" className="h-6 w-6 rounded-full object-cover border-2 border-background z-10" />
+                          ) : (
+                            <div className="h-6 w-6 rounded-full bg-slate-200 border-2 border-background flex items-center justify-center text-[8px] font-bold text-slate-600 z-10">
+                              {payerName?.substring(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                          {s.paidTo?.avatar ? (
+                            <img src={s.paidTo.avatar} alt="receiver" className="h-6 w-6 rounded-full object-cover border-2 border-background" />
+                          ) : (
+                            <div className="h-6 w-6 rounded-full bg-slate-200 border-2 border-background flex items-center justify-center text-[8px] font-bold text-slate-600">
+                              {receiverName?.substring(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <span className="text-muted-foreground leading-snug">
+                            <span className={`font-medium ${isMyPayment ? 'text-emerald-600' : 'text-foreground'}`}>
+                              {isMyPayment ? 'You' : payerName}
+                            </span>
+                            {' paid '}
+                            <span className="font-medium text-foreground">{receiverName}</span>
+                            {' '}₹{s.amount.toFixed(2)}
                           </span>
-                          {' paid '}
-                          <span className="font-medium text-foreground">{receiverName}</span>
-                          {' '}
-                          <span className="font-semibold text-foreground">₹{s.amount.toFixed(2)}</span>
-                        </span>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
-                          {new Date(s.createdAt).toLocaleString('en-IN', {
-                            day: 'numeric', month: 'short',
-                            hour: '2-digit', minute: '2-digit'
-                          })}
-                        </span>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {new Date(s.createdAt).toLocaleString('en-IN', {
+                              day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
                       </li>
                     );
                   })}

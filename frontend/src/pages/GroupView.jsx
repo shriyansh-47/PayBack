@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { groupService, authService } from '../api/services';
 import { AddExpenseModal } from '../components/AddExpenseModal';
+import { AddMembersModal } from '../components/AddMembersModal';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { useToast } from '../hooks/use-toast';
@@ -81,8 +82,9 @@ export default function GroupView() {
       <div className="grid gap-4 md:grid-cols-2">
         {/* Members Card */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Members</CardTitle>
+            <AddMembersModal groupId={groupId} currentMembers={group.members} onAdded={fetchGroup} />
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">

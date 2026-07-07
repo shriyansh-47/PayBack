@@ -7,6 +7,8 @@ export const authService = {
   searchUsers: (query) => api.get(`/user/search?query=${query}`),
   updateSettings: (data) => api.patch('/user/settings', data),
   getCurrentUser: () => api.get('/user/me'),
+  changePassword: (data) => api.post('/user/change-password', data),
+  updateAvatar: (data) => api.patch('/user/images', data),
 };
 
 export const groupService = {
@@ -16,6 +18,7 @@ export const groupService = {
   simplifyDebts: (groupId) => api.post(`/group/${groupId}/simplify`),
   getGroupDetails: (groupId) => api.get(`/group/${groupId}`),
   deleteGroup: (groupId) => api.delete(`/group/${groupId}`),
+  addMembersToGroup: (groupId, data) => api.post(`/group/${groupId}/members`, data),
 };
 
 export const expenseService = {

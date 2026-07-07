@@ -185,10 +185,10 @@ const getUserExpenses = asyncHandler(async (req, res) => {
             { 'splits.user': req.user._id }
         ]
     })
-    .populate('paidBy', 'username fullName')
-    .populate('splits.user', 'username fullName')
-    .populate('settlements.paidBy', 'username fullName')
-    .populate('settlements.paidTo', 'username fullName')
+    .populate('paidBy', 'username fullName avatar')
+    .populate('splits.user', 'username fullName avatar')
+    .populate('settlements.paidBy', 'username fullName avatar')
+    .populate('settlements.paidTo', 'username fullName avatar')
     .sort({ createdAt: -1 });
 
     return res.status(200).json(new apiResponse(200, expenses, "User expenses fetched successfully"));
