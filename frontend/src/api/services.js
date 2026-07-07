@@ -21,7 +21,8 @@ export const groupService = {
 export const expenseService = {
   createExpense: (data) => api.post('/expense', data),
   deleteExpense: (expenseId) => api.delete(`/expense/${expenseId}`),
-  settleUp: (data) => api.post('/expense/settle', data),
+  hideExpense: (expenseId) => api.post(`/expense/${expenseId}/hide`),  // non-payer clear
+  settleUp: (data) => api.post('/expense/settle', data),   // data: { expenseId, amount }
   getUserExpenses: () => api.get('/expense'),
 };
 

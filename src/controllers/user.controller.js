@@ -51,12 +51,24 @@ const registerUser = asyncHandler( async (request,response) => {
     }
 
 
+    // Handling Avatar Upload
+    let avatarUrl = "";
+    const avatarLocalPath = request.files?.avatar?.[0]?.path;
+    
+    if (avatarLocalPath) {
+        const avatar = await uploadOnCloudinary(avatarLocalPath);
+        if (avatar) {
+            avatarUrl = avatar.url;
+        }
+    }
+
     // Creating entry in DB
     const user = await User.create({
         fullName: fullName.toUpperCase(),
         username: username.toLowerCase(),
         email,
-        password
+        password,
+        ...(avatarUrl && { avatar: avatarUrl })
     })
 
     // removing password + checking if user was created
@@ -67,9 +79,18 @@ const registerUser = asyncHandler( async (request,response) => {
         throw new apiError(500, "Something went wrong when registering new user.")
     }
 
+    // Auto-login: generate token and set cookie exactly as login does
+    const accessToken = await generateAccessAndRefreshToken(user._id)
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
     // returning back a response to the front-end
-    return response.status(201).json(
-        new apiResponse(201, userCreated, "User created successfully !!")
+    return response.status(201)
+    .cookie("accessToken", accessToken, options)
+    .json(
+        new apiResponse(201, { user: userCreated, accessToken }, "User created successfully !!")
     )
 
 })

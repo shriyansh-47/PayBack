@@ -47,16 +47,27 @@ export function AddExpenseModal({ groupId, onAdded }) {
 
   // Handle User Search
   useEffect(() => {
-    if (searchQuery.length > 2) {
+    let ignore = false;
+
+    if (searchQuery.trim().length > 0) {
       const timer = setTimeout(() => {
-        authService.searchUsers(searchQuery)
-          .then(res => setSearchResults(res.data.data))
+        authService.searchUsers(searchQuery.trim())
+          .then(res => {
+            if (!ignore) setSearchResults(res.data.data);
+          })
           .catch(console.error);
       }, 300);
-      return () => clearTimeout(timer);
+      return () => {
+        ignore = true;
+        clearTimeout(timer);
+      };
     } else {
       setSearchResults([]);
     }
+
+    return () => {
+      ignore = true;
+    };
   }, [searchQuery]);
 
   const addFriend = (user) => {
@@ -149,7 +160,7 @@ export function AddExpenseModal({ groupId, onAdded }) {
         description: desc,
         category,
         date,
-        currency: 'USD', // Hardcoded per user preference for simplicity, or grab from settings
+        currency: 'INR', // Default currency
         splitStrategy,
         splits: finalSplits.length > 0 ? finalSplits : undefined // Backend handles EQUAL internally if splits undefined, but we send it explicitly if we have members
       });
@@ -182,7 +193,7 @@ export function AddExpenseModal({ groupId, onAdded }) {
           <div className="flex flex-col items-center justify-center space-y-2">
             <Label className="text-muted-foreground font-medium">Amount</Label>
             <div className="flex items-center text-5xl font-light text-emerald-600">
-              <span className="mr-2">$</span>
+              <span className="mr-2">₹</span>
               <Input 
                 type="number" 
                 step="0.01" 
@@ -230,23 +241,27 @@ export function AddExpenseModal({ groupId, onAdded }) {
           </div>
 
           <div className="border-t pt-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-semibold flex items-center">
-                <Users className="mr-2 h-4 w-4" /> Split With
-              </Label>
-            </div>
+            {!groupId && (
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold flex items-center">
+                  <Users className="mr-2 h-4 w-4" /> Split With
+                </Label>
+              </div>
+            )}
 
-            <Select value={selectedGroup} onValueChange={setSelectedGroup} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Group or Create New..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NEW_GROUP" className="font-semibold text-emerald-600">+ Create New Group...</SelectItem>
-                {groups.map(g => (
-                  <SelectItem key={g._id} value={g._id}>{g.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!groupId && (
+              <Select value={selectedGroup} onValueChange={setSelectedGroup} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Group or Create New..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="NEW_GROUP" className="font-semibold text-emerald-600">+ Create New Group...</SelectItem>
+                  {groups.map(g => (
+                    <SelectItem key={g._id} value={g._id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
 
             {/* Inline Group Creation UI */}
             {selectedGroup === 'NEW_GROUP' && (
@@ -274,7 +289,16 @@ export function AddExpenseModal({ groupId, onAdded }) {
                           className="p-2 hover:bg-muted cursor-pointer flex items-center justify-between"
                           onClick={() => addFriend(u)}
                         >
-                          <span>{u.fullName || u.username}</span>
+                          <div className="flex items-center space-x-2">
+                            {u.avatar ? (
+                              <img src={u.avatar} alt="avatar" className="h-6 w-6 rounded-full object-cover" />
+                            ) : (
+                              <div className="h-6 w-6 rounded-full bg-slate-300 flex items-center justify-center text-[10px] font-bold text-white">
+                                {u.username?.substring(0, 2).toUpperCase()}
+                              </div>
+                            )}
+                            <span>{u.username}</span>
+                          </div>
                           <UserPlus className="h-4 w-4 text-emerald-600" />
                         </div>
                       ))}
@@ -311,19 +335,23 @@ export function AddExpenseModal({ groupId, onAdded }) {
                     return (
                       <div key={p._id || p} className="flex items-center justify-between py-2 border-b last:border-0">
                         <div className="flex items-center space-x-2">
-                          <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${isMe ? 'bg-emerald-500' : 'bg-slate-400'}`}>
-                            {isMe ? 'YOU' : (p.username?.substring(0, 2).toUpperCase() || 'U')}
-                          </div>
+                          {p.avatar ? (
+                            <img src={p.avatar} alt="avatar" className="h-8 w-8 rounded-full object-cover" />
+                          ) : (
+                            <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold text-white ${isMe ? 'bg-emerald-500' : 'bg-slate-400'}`}>
+                              {isMe ? 'YOU' : (p.username?.substring(0, 2).toUpperCase() || 'U')}
+                            </div>
+                          )}
                           <div>
-                            <p className="text-sm font-medium">{isMe ? 'You (Paid)' : (p.fullName || p.username || 'Member')}</p>
+                            <p className="text-sm font-medium">{isMe ? 'You (Paid)' : (p.username || p.fullName || 'Member')}</p>
                           </div>
                         </div>
                         
                         <div>
-                          {splitStrategy === 'EQUAL' && <span className="font-medium text-sm">${splitVal}</span>}
+                          {splitStrategy === 'EQUAL' && <span className="font-medium text-sm">₹{splitVal}</span>}
                           {splitStrategy === 'EXACT' && (
                             <div className="flex items-center">
-                              <span className="text-muted-foreground text-sm mr-1">$</span>
+                              <span className="text-muted-foreground text-sm mr-1">₹</span>
                               <Input 
                                 type="number" step="0.01" className="w-20 h-8 text-right"
                                 value={exactAmounts[p._id || p] || ''}

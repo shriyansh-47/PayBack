@@ -13,6 +13,7 @@ export default function Register() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [avatar, setAvatar] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -22,9 +23,16 @@ export default function Register() {
     e.preventDefault();
     setLoading(true);
     try {
-      await authService.register({ fullName, username, email, password });
-      toast({ title: "Success", description: "Registered successfully. Please login." });
-      navigate('/login');
+      const formData = new FormData();
+      formData.append('fullName', fullName);
+      formData.append('username', username);
+      formData.append('email', email);
+      formData.append('password', password);
+      if (avatar) formData.append('avatar', avatar);
+
+      await authService.register(formData);
+      toast({ title: "Welcome!", description: "Account created. You are now logged in." });
+      navigate('/');
     } catch (error) {
       toast({
         variant: "destructive",
@@ -76,6 +84,15 @@ export default function Register() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="avatar">Profile Picture (Optional)</Label>
+              <Input 
+                id="avatar" 
+                type="file" 
+                accept="image/*" 
+                onChange={e => setAvatar(e.target.files[0])} 
+              />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">

@@ -21,6 +21,7 @@ const createGroup = asyncHandler(async (req, res) => {
         name,
         description,
         members: memberIds,
+        createdBy: req.user._id,
         balances: []
     });
 
@@ -33,7 +34,8 @@ const getGroupDashboard = asyncHandler(async (req, res) => {
     const group = await Group.findById(groupId)
         .populate('members', 'fullName username avatar')
         .populate('balances.fromUser', 'fullName username avatar')
-        .populate('balances.toUser', 'fullName username avatar');
+        .populate('balances.toUser', 'fullName username avatar')
+        .populate('createdBy', 'fullName username');
 
     if (!group) {
         throw new apiError(404, "Group not found");
@@ -93,7 +95,8 @@ const simplifyGroupDebts = asyncHandler(async (req, res) => {
 
 const getUserGroups = asyncHandler(async (req, res) => {
     const groups = await Group.find({ members: req.user._id })
-        .populate('members', 'fullName username avatar');
+        .populate('members', 'fullName username avatar')
+        .populate('createdBy', 'fullName username');
     return res.status(200).json(new apiResponse(200, groups, "User groups fetched"));
 });
 
@@ -105,13 +108,12 @@ const deleteGroup = asyncHandler(async (req, res) => {
         throw new apiError(404, "Group not found");
     }
 
-    // Optional: Check if user is part of the group or is an admin before deleting
-    if (!group.members.includes(req.user._id.toString())) {
-        throw new apiError(403, "You do not have permission to delete this group");
+    // Only the creator can delete the group
+    if (group.createdBy.toString() !== req.user._id.toString()) {
+        throw new apiError(403, "Only the group creator can delete this group");
     }
 
     await Group.findByIdAndDelete(groupId);
-    // Optional: Delete associated expenses
     await Expense.deleteMany({ groupId });
 
     return res.status(200).json(new apiResponse(200, {}, "Group deleted successfully"));

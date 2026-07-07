@@ -87,16 +87,27 @@ function CreateGroupModal({ onCreated }) {
   }, [open]);
 
   useEffect(() => {
-    if (searchQuery.length > 2) {
+    let ignore = false;
+    
+    if (searchQuery.trim().length > 0) {
       const timer = setTimeout(() => {
-        authService.searchUsers(searchQuery)
-          .then(res => setSearchResults(res.data.data))
+        authService.searchUsers(searchQuery.trim())
+          .then(res => {
+            if (!ignore) setSearchResults(res.data.data);
+          })
           .catch(console.error);
       }, 300);
-      return () => clearTimeout(timer);
+      return () => {
+        ignore = true;
+        clearTimeout(timer);
+      };
     } else {
       setSearchResults([]);
     }
+    
+    return () => {
+      ignore = true;
+    };
   }, [searchQuery]);
 
   const addFriend = (user) => {
@@ -167,7 +178,16 @@ function CreateGroupModal({ onCreated }) {
                       className="p-2 hover:bg-muted cursor-pointer flex items-center justify-between"
                       onClick={() => addFriend(u)}
                     >
-                      <span>{u.fullName || u.username}</span>
+                      <div className="flex items-center space-x-2">
+                        {u.avatar ? (
+                          <img src={u.avatar} alt="avatar" className="h-6 w-6 rounded-full object-cover" />
+                        ) : (
+                          <div className="h-6 w-6 rounded-full bg-slate-300 flex items-center justify-center text-[10px] font-bold text-white">
+                            {u.username?.substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <span>{u.username}</span>
+                      </div>
                       <UserPlus className="h-4 w-4 text-emerald-600" />
                     </div>
                   ))}
@@ -180,7 +200,14 @@ function CreateGroupModal({ onCreated }) {
               <div className="flex flex-wrap gap-2 mt-2">
                 {selectedFriends.map(f => (
                   <div key={f._id} className="flex items-center bg-muted px-2 py-1 rounded-md text-sm">
-                    {f.fullName || f.username}
+                    {f.avatar ? (
+                      <img src={f.avatar} alt="avatar" className="h-4 w-4 rounded-full object-cover mr-1" />
+                    ) : (
+                      <div className="h-4 w-4 rounded-full bg-slate-300 flex items-center justify-center text-[8px] font-bold text-white mr-1">
+                        {f.username?.substring(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    {f.username}
                     <X 
                       className="ml-2 h-3 w-3 cursor-pointer hover:text-destructive" 
                       onClick={() => removeFriend(f._id)} 

@@ -56,6 +56,34 @@ const expenseSchema = new mongoose.Schema(
             percentage: {
                 type: Number
             }
+        }],
+
+        // Activity log: every partial/full payment against this expense
+        settlements: [{
+            paidBy: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            paidTo: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+            amount: {
+                type: Number,
+                required: true
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
+        }],
+
+        // Per-user soft-hide: users who have cleared this expense from their view
+        hiddenFrom: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
         }]
     },
     {timestamps: true}

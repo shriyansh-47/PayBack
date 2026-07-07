@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createExpense, deleteExpense, settleUp, getUserExpenses } from '../controllers/expense.controller.js';
+import { createExpense, deleteExpense, settleUp, getUserExpenses, hideExpense } from '../controllers/expense.controller.js';
 import { verifyJwt } from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -7,7 +7,9 @@ const router = Router();
 router.use(verifyJwt);
 
 router.route('/').post(createExpense).get(getUserExpenses);
-router.route('/:expenseId').delete(deleteExpense);
+// /settle must come BEFORE /:expenseId to avoid Express matching "settle" as an ID
 router.route('/settle').post(settleUp);
+router.route('/:expenseId/hide').post(hideExpense);
+router.route('/:expenseId').delete(deleteExpense);
 
 export default router;

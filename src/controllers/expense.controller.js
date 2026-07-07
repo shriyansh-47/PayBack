@@ -1,5 +1,6 @@
 import { Expense } from '../models/expense.models.js';
 import { Group } from '../models/group.models.js';
+import { Notification } from '../models/notification.models.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { apiError } from '../utils/apiError.js';
 import { apiResponse } from '../utils/apiResponse.js';
@@ -93,48 +94,133 @@ const deleteExpense = asyncHandler(async (req, res) => {
     return res.status(200).json(new apiResponse(200, {}, "Expense deleted successfully"));
 });
 
+/**
+ * Settle some or all of a user's share on a specific expense.
+ * Instead of creating a new expense, we directly reduce the split amount
+ * on the original expense and update group balances.
+ */
 const settleUp = asyncHandler(async (req, res) => {
-    const { groupId, toUser, amount, currency } = req.body;
-    const fromUser = req.user._id;
+    const { expenseId, amount } = req.body;
+    const payerId = req.user._id;
 
-    if (!groupId || !toUser || !amount || !currency) {
-        throw new apiError(400, "Missing required fields");
+    if (!expenseId || !amount || Number(amount) <= 0) {
+        throw new apiError(400, "expenseId and a positive amount are required");
     }
 
-    // A settlement is just an expense where fromUser pays for toUser's share
-    const expense = await Expense.create({
-        description: "Settlement",
-        totalAmount: amount,
-        currency,
-        category: 'Others',
-        paidBy: fromUser,
-        groupId,
-        splitStrategy: 'EXACT',
-        splits: [
-            { user: toUser, amount }
-        ]
-    });
+    const settledAmount = Number(amount);
 
-    // toUser owes fromUser amount
-    await updateBalanceAtomic(groupId, toUser, fromUser, amount, currency);
+    // Load the expense with populated payer info for notifications
+    const expense = await Expense.findById(expenseId).populate('paidBy', 'username fullName');
+    if (!expense) throw new apiError(404, "Expense not found");
+    if (expense.isDeleted) throw new apiError(400, "Expense is deleted");
 
-    return res.status(200).json(new apiResponse(200, expense, "Settled up successfully"));
+    // Find the caller's split in this expense
+    const splitIndex = expense.splits.findIndex(s => s.user.toString() === payerId.toString());
+    if (splitIndex === -1) {
+        throw new apiError(400, "You have no split in this expense");
+    }
+
+    // The person who paid the bill is the receiver of the settlement
+    const receiverId = expense.paidBy._id;
+
+    if (payerId.toString() === receiverId.toString()) {
+        throw new apiError(400, "You cannot settle with yourself");
+    }
+
+    const currentOwed = expense.splits[splitIndex].amount;
+    if (settledAmount > currentOwed + 0.01) {
+        throw new apiError(400, `You only owe ₹${currentOwed.toFixed(2)}, cannot settle more`);
+    }
+
+    const newOwed = Math.max(0, currentOwed - settledAmount);
+
+    // Atomically update the split amount AND push the activity log entry
+    await Expense.updateOne(
+        { _id: expenseId, "splits.user": payerId },
+        {
+            $set: { "splits.$.amount": newOwed },
+            $push: {
+                settlements: {
+                    paidBy: payerId,
+                    paidTo: receiverId,
+                    amount: settledAmount,
+                    createdAt: new Date()
+                }
+            }
+        }
+    );
+
+    // Update group balance atomically (reduce what payer owes receiver)
+    await updateBalanceAtomic(expense.groupId, payerId, receiverId, -settledAmount, expense.currency);
+
+    // Send notifications to both parties
+    const payerName = req.user.username || req.user.fullName || 'Someone';
+    const receiverName = expense.paidBy.username || expense.paidBy.fullName || 'Someone';
+    const currency = expense.currency || 'INR';
+
+    await Notification.create([
+        {
+            userId: receiverId,
+            message: `${payerName} paid you ${currency} ${settledAmount.toFixed(2)} towards "${expense.description}".`
+        },
+        {
+            userId: payerId,
+            message: `You paid ${receiverName} ${currency} ${settledAmount.toFixed(2)} towards "${expense.description}". ${newOwed > 0 ? `Remaining: ${currency} ${newOwed.toFixed(2)}.` : 'Fully settled!'}`
+        }
+    ]);
+
+    return res.status(200).json(new apiResponse(200, {
+        settledAmount,
+        remainingOwed: newOwed,
+        fullySettled: newOwed === 0
+    }, "Settled successfully"));
 });
 
 const getUserExpenses = asyncHandler(async (req, res) => {
     const expenses = await Expense.find({
+        isDeleted: false,
+        hiddenFrom: { $ne: req.user._id },   // exclude expenses user has cleared
         $or: [
             { paidBy: req.user._id },
             { 'splits.user': req.user._id }
         ]
-    }).sort({ createdAt: -1 });
+    })
+    .populate('paidBy', 'username fullName')
+    .populate('splits.user', 'username fullName')
+    .populate('settlements.paidBy', 'username fullName')
+    .populate('settlements.paidTo', 'username fullName')
+    .sort({ createdAt: -1 });
 
     return res.status(200).json(new apiResponse(200, expenses, "User expenses fetched successfully"));
+});
+
+// Non-payer clear: add user to hiddenFrom (does NOT delete the record)
+const hideExpense = asyncHandler(async (req, res) => {
+    const { expenseId } = req.params;
+    const userId = req.user._id;
+
+    const expense = await Expense.findById(expenseId);
+    if (!expense) throw new apiError(404, 'Expense not found');
+    if (expense.isDeleted) throw new apiError(400, 'Expense already deleted');
+
+    // Make sure the user is actually in the splits (they have a stake)
+    const hasSplit = expense.splits.some(s => s.user.toString() === userId.toString());
+    const isPayer = expense.paidBy.toString() === userId.toString();
+    if (!hasSplit && !isPayer) throw new apiError(403, 'You are not part of this expense');
+
+    // Idempotent push
+    await Expense.updateOne(
+        { _id: expenseId },
+        { $addToSet: { hiddenFrom: userId } }
+    );
+
+    return res.status(200).json(new apiResponse(200, {}, 'Expense hidden from your view'));
 });
 
 export {
     createExpense,
     deleteExpense,
     settleUp,
-    getUserExpenses
+    getUserExpenses,
+    hideExpense
 };

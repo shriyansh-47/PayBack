@@ -8,7 +8,7 @@ import { useToast } from '../hooks/use-toast';
 
 export default function Settings() {
   const [name, setName] = useState('');
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('INR');
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const { toast } = useToast();
@@ -18,7 +18,7 @@ export default function Settings() {
       try {
         const res = await authService.getCurrentUser();
         setName(res.data.user?.name || '');
-        setCurrency(res.data.user?.defaultCurrency || 'USD');
+        setCurrency(res.data.user?.defaultCurrency || 'INR');
       } catch (err) {
         console.error(err);
       } finally {

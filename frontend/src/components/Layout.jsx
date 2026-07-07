@@ -1,15 +1,41 @@
-import { Link, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, Settings, ReceiptText } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, Settings, ReceiptText, LogOut } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { AddExpenseModal } from './AddExpenseModal';
+import { authService } from '../api/services';
+import { useToast } from '../hooks/use-toast';
+import { Button } from './ui/button';
 
 export default function Layout() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    authService.getCurrentUser()
+      .then(res => setUser(res.data.data))
+      .catch(console.error);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch (_) {
+      // swallow — clear session regardless
+    }
+    toast({ title: 'Logged out' });
+    navigate('/login');
+  };
+
   return (
     <div className="flex min-h-screen flex-col lg:flex-row bg-background">
       {/* Sidebar for Desktop / Navbar for Mobile */}
       <aside className="w-full lg:w-64 border-b lg:border-r border-border bg-card p-4 flex lg:flex-col justify-between lg:justify-start">
         <div className="flex items-center space-x-2 lg:mb-8">
-          <div className="h-8 w-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold">P</div>
+          <div className="h-8 w-8 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold shadow-sm">
+            P
+          </div>
           <span className="text-xl font-bold tracking-tight hidden lg:inline-block">PayBack</span>
         </div>
         
@@ -39,8 +65,17 @@ export default function Layout() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        <header className="h-14 border-b border-border bg-card flex items-center justify-end px-6">
+        <header className="h-14 border-b border-border bg-card flex items-center justify-end gap-2 px-6">
           <NotificationBell />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            title="Logout"
+            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
         </header>
         <div className="flex-1 overflow-auto p-6">
           <Outlet />

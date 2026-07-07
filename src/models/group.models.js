@@ -10,11 +10,16 @@ const groupSchema = new mongoose.Schema(
             type: String,
             default: ''
         },
-        // an array where each element is an ObjectId which references a particular user from User model
         members: [{ 
             type: mongoose.Schema.Types.ObjectId, 
             ref: 'User' 
         }],
+
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
 
         // this is diff from above, as its an array of embedded-objects
         balances: [{
