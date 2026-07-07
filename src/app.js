@@ -35,4 +35,14 @@ app.use('/api/v1/group', GroupRouter)
 app.use('/api/v1/expense', ExpenseRouter)
 app.use('/api/v1/notification', NotificationRouter)
 
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
+        success: false,
+        message: err.message || "Internal Server Error",
+        errors: err.errors || []
+    });
+});
+
 export { app } // named-export
