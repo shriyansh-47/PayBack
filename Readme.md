@@ -6,15 +6,15 @@ With a sleek, dark-mode first UI built on modern web standards, PayBack feels pr
 
 ## 🚀 Features
 
-- **Military-Grade Security**: Fully encrypted password hashing and stateless JWT-based session architecture to guarantee absolute data privacy.
-- **Real-Time Financial Dashboard**: Get an instantaneous, aggregated overview of your fiscal health, including net debts, total outstanding balances, and granular activity logging.
-- **Dynamic Group Ecosystems**: Spin up shared expense groups, instantly onboard friends via a high-performance live search, and meticulously organize expenditures by category.
-- **Algorithmic Expense Splitting**: Distribute massive bills with mathematical precision using flexible strategies:
-  - **Egalitarian**: Split perfectly down the middle among all participants.
-  - **Pinpoint Accuracy**: Allocate exact monetary amounts down to the penny.
-  - **Custom Ratios**: Divvy up expenses via percentage-based allocations.
-- **Cloud-Backed Media Management**: Enterprise-grade profile avatar hosting powered by robust Cloudinary integration.
-- **Deep Analytics & History**: Keep a permanent, tamper-proof record of every financial transaction you and your friends make.
+- **User Authentication**: Secure password hashing and JWT-based sessions.
+- **Financial Dashboard**: A clear overview of your total owed, total you owe, and recent activity.
+- **Group Management**: Create groups, search for users to add, and organize expenses by category.
+- **Flexible Expense Splitting**: Split bills among friends using three methods:
+  - **Equally**: Split the total evenly among all participants.
+  - **Exact Amounts**: Specify the exact amount each person owes.
+  - **Percentages**: Split by custom percentage ratios.
+- **Profile Avatars**: Integrated image uploading for user profiles using Cloudinary.
+- **Activity History**: Keep a clear record of all transactions and group activities.
 
 ## 🛠️ Tech Stack
 
@@ -152,7 +152,7 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 ## 📝 License
 This project is licensed under the ISC License.
 
----
-
 ## 👤 Author
 **Shriyansh Yadav**
+
+---
