@@ -6,7 +6,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { useToast } from '../hooks/use-toast';
-import { Users, Receipt, Calendar, ListPlus, Search, UserPlus } from 'lucide-react';
+import { Users, Receipt, Calendar, ListPlus, Search, UserPlus, Plus } from 'lucide-react';
 
 export function AddExpenseModal({ groupId, onAdded }) {
   const [open, setOpen] = useState(false);
@@ -179,7 +179,7 @@ export function AddExpenseModal({ groupId, onAdded }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full lg:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+        <Button className="w-full lg:w-auto bg-foreground hover:bg-foreground/90 text-background font-semibold transition-colors">
           <ListPlus className="mr-2 h-5 w-5" /> Add Expense
         </Button>
       </DialogTrigger>
@@ -192,8 +192,8 @@ export function AddExpenseModal({ groupId, onAdded }) {
           {/* Top: Giant Amount */}
           <div className="flex flex-col items-center justify-center space-y-2">
             <Label className="text-muted-foreground font-medium">Amount</Label>
-            <div className="flex items-center text-5xl font-light text-emerald-600">
-              <span className="mr-2">₹</span>
+            <div className="flex items-center justify-center text-6xl md:text-6xl font-light text-foreground">
+              <span className="text-foreground">₹</span>
               <Input 
                 type="number" 
                 step="0.01" 
@@ -201,7 +201,7 @@ export function AddExpenseModal({ groupId, onAdded }) {
                 onChange={e => setAmount(e.target.value)} 
                 required 
                 placeholder="0.00" 
-                className="text-5xl h-16 w-48 border-none shadow-none text-emerald-600 placeholder:text-emerald-200 focus-visible:ring-0 text-center"
+                className="text-6xl md:text-6xl h-20 w-56 border-none bg-transparent shadow-none text-foreground placeholder:text-muted focus-visible:ring-0 px-2 caret-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
           </div>
@@ -255,7 +255,7 @@ export function AddExpenseModal({ groupId, onAdded }) {
                   <SelectValue placeholder="Select Group or Create New..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="NEW_GROUP" className="font-semibold text-emerald-600">+ Create New Group...</SelectItem>
+                  <SelectItem value="NEW_GROUP" className="font-semibold">+ Create New Group...</SelectItem>
                   {groups.map(g => (
                     <SelectItem key={g._id} value={g._id}>{g.name}</SelectItem>
                   ))}
@@ -299,7 +299,7 @@ export function AddExpenseModal({ groupId, onAdded }) {
                             )}
                             <span>{u.username}</span>
                           </div>
-                          <UserPlus className="h-4 w-4 text-emerald-600" />
+                          <Plus className="h-4 w-4" />
                         </div>
                       ))}
                     </div>
@@ -380,7 +380,7 @@ export function AddExpenseModal({ groupId, onAdded }) {
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={loading}>
+            <Button type="submit" className="bg-foreground hover:bg-foreground/90 text-background" disabled={loading}>
               Save Expense
             </Button>
           </div>

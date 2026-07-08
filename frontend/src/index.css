@@ -1,5 +1,5 @@
 @import "tw-animate-css";
-@import "@fontsource-variable/geist";
+@import "@fontsource/roboto-mono";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,11 +7,9 @@
 
 
 @layer base {
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
-  }
   :root {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Roboto Mono', monospace;
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -86,5 +84,14 @@
   }
   html {
     @apply font-sans;
+  }
+
+  /* Hide scrollbar globally for all elements */
+  *::-webkit-scrollbar {
+    display: none;
+  }
+  * {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 }
