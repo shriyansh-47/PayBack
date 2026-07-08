@@ -9,9 +9,9 @@ export default function ThemeToggle() {
       if (savedTheme) {
         return savedTheme === 'dark';
       }
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+      return true; // Default to dark mode
     }
-    return false;
+    return true;
   });
 
   useEffect(() => {
