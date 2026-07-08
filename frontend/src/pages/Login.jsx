@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../api/services';
 import { Button } from '../components/ui/button';
@@ -17,7 +17,16 @@ export default function Login() {
 
   useEffect(() => {
     document.title = 'Login | PayBack';
-  }, []);
+    // Check if user is already logged in
+    authService.getCurrentUser()
+      .then(() => {
+        // If successful, user is already logged in
+        navigate('/');
+      })
+      .catch(() => {
+        // Not logged in, stay on login page
+      });
+  }, [navigate]);
   const { toast } = useToast();
 
   const handleSubmit = async (e) => {

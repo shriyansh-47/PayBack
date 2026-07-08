@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authService } from '../api/services';
 import { Button } from '../components/ui/button';
@@ -20,7 +20,12 @@ export default function Register() {
 
   useEffect(() => {
     document.title = 'Register | PayBack';
-  }, []);
+    authService.getCurrentUser()
+      .then(() => {
+        navigate('/');
+      })
+      .catch(() => {});
+  }, [navigate]);
   const { toast } = useToast();
 
   const handleSubmit = async (e) => {

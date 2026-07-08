@@ -12,10 +12,14 @@ export default function Layout() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     authService.getCurrentUser()
-      .then(res => setUser(res.data.data))
+      .then(res => {
+        setUser(res.data.data);
+        setLoading(false);
+      })
       .catch(err => {
         console.error("Auth check failed:", err);
         navigate('/login');
@@ -31,6 +35,10 @@ export default function Layout() {
     toast({ title: 'Logged out' });
     navigate('/login');
   };
+
+  if (loading) {
+    return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground animate-pulse">Authenticating...</p></div>;
+  }
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row bg-background">
