@@ -48,6 +48,14 @@ export default function GroupView() {
     fetchGroup();
   }, [groupId]);
 
+  useEffect(() => {
+    if (group?.name) {
+      document.title = `${group.name} | PayBack`;
+    } else {
+      document.title = 'Group | PayBack';
+    }
+  }, [group?.name]);
+
   if (loading) return <div className="p-8">Loading group...</div>;
   if (!group) return <div className="p-8">Group not found.</div>;
 

@@ -50,7 +50,10 @@ export default function Expenses() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    document.title = 'All Expenses | PayBack';
+    fetchData();
+  }, []);
 
   if (loading) return <div className="p-8 text-muted-foreground">Loading expenses...</div>;
 

@@ -14,6 +14,10 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = 'Login | PayBack';
+  }, []);
   const { toast } = useToast();
 
   const handleSubmit = async (e) => {

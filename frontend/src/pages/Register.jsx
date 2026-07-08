@@ -17,6 +17,10 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = 'Register | PayBack';
+  }, []);
   const { toast } = useToast();
 
   const handleSubmit = async (e) => {

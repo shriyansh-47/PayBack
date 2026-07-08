@@ -38,6 +38,7 @@ export default function Settings() {
         setFetching(false);
       }
     };
+    document.title = 'Settings | PayBack';
     fetchUser();
   }, []);
 

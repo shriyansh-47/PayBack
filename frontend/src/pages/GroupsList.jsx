@@ -25,6 +25,7 @@ export default function GroupsList() {
   };
 
   useEffect(() => {
+    document.title = 'Groups | PayBack';
     fetchGroups();
   }, []);
 

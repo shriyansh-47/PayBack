@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.title = 'Dashboard | PayBack';
     const fetchData = async () => {
       try {
         const [userRes, groupsRes, expensesRes] = await Promise.all([
