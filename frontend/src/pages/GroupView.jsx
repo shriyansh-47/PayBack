@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { groupService, authService } from '../api/services';
-import { AddExpenseModal } from '../components/AddExpenseModal';
 import { AddMembersModal } from '../components/AddMembersModal';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -70,7 +69,6 @@ export default function GroupView() {
           </p>
         </div>
         <div className="flex space-x-2">
-          <AddExpenseModal groupId={groupId} onAdded={fetchGroup} />
           {isCreator && (
             <Button variant="destructive" size="icon" onClick={handleDelete} title="Delete Group">
               <Trash className="h-4 w-4" />
